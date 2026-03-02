@@ -476,6 +476,24 @@ public class Constants {
     public static final String INVALID_REQUEST_ERR_MSG = "Missing or invalid 'request' node: {}";
     public static final String PARSE_ERROR = "PARSE_ERROR";
 
+    public static final String ENDPOINT_BASE_NOTIFICATIONS = "/v1/notifications";
+    public static final String ENDPOINT_MANDATORY_LIST = "/mandatory/list";
+    public static final String ENDPOINT_MANDATORY_CURRENT = "/mandatory/current";
+    public static final String ENDPOINT_MANDATORY_READ = "/mandatory/read";
+
+    public static final String PARAM_SUB_TYPE = "sub_type";
+
+    public static final String NOTIFICATION = "notification";
+    public static final String ERR_FETCHING_NOTIFICATION_LIST = "Internal server error while fetching notification list";
+    public static final String ERR_FETCHING_NOTIFICATION = "Internal server error while fetching notification";
+    public static final String ERR_ID_AND_CREATED_AT_REQUIRED = "Both 'id' and 'createdAt' must be provided";
+    public static final String ERR_INVALID_CREATED_AT_FORMAT = "Invalid 'createdAt' format";
+    public static final String ERR_NOTIFICATION_NOT_FOUND = "Notification not found for the given id and createdAt";
+    public static final String MSG_NOTIFICATION_MARKED_READ = "Notification marked as read successfully";
+    public static final String ERR_FAILED_TO_UPDATE_NOTIFICATION = "Failed to update notification";
+    public static final String ERR_UPDATING_NOTIFICATION = "Internal server error while updating notification";
+    public static final String TABLE_MANDATORY_NOTIFICATION = "mandatory_notifications";
+
     private Constants() {
     }
 }
