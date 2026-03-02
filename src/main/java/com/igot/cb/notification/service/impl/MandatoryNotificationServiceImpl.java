@@ -366,11 +366,16 @@ public class MandatoryNotificationServiceImpl implements MandatoryNotificationSe
             List<Map<String, Object>> records = cassandraOperation.getRecordsByPropertiesWithoutFiltering(
                     keyspace, table, criteria, fields, 1
             );
-            if (CollectionUtils.isEmpty(records) || records.get(0).get(COUNT) == null) {
+            if (CollectionUtils.isEmpty(records)) {
                 log.warn("decrementUnreadCount: No count record found for user {} — skipping", userId);
                 return;
             }
-            int currentCount = (int) records.get(0).get(COUNT);
+            Map<String, Object> countRecord = records.get(0);
+            if (countRecord == null || countRecord.get(COUNT) == null) {
+                log.warn("decrementUnreadCount: No count record found for user {} — skipping", userId);
+                return;
+            }
+            int currentCount = (int) countRecord.get(COUNT);
             if (currentCount <= 0) {
                 log.warn("decrementUnreadCount: Count is already 0 for user {} — skipping", userId);
                 return;
