@@ -2,10 +2,10 @@ package com.igot.cb.notification.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.igot.cb.authentication.util.AccessTokenValidator;
 import com.igot.cb.notification.enums.NotificationReadStatus;
-import com.igot.cb.transactional.cassandrautils.CassandraOperation;
-import com.igot.cb.util.ApiResponse;
+import org.igot.common.ApiResponse;
+import org.igot.common.auth.AccessTokenValidator;
+import org.igot.common.cassandra.CassandraOperation;
 import com.igot.cb.util.CbServerProperties;
 import com.igot.cb.util.Constants;
 import org.junit.jupiter.api.AfterEach;
@@ -93,7 +93,7 @@ class MandatoryNotificationServiceImplTest {
     }
 
     private void mockCassandraReturn(List<Map<String, Object>> records) {
-        when(cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+        when(cassandraOperation.getRecordsByProperties(
                 eq(Constants.KEYSPACE_SUNBIRD), eq(Constants.TABLE_MANDATORY_NOTIFICATION),
                 anyMap(), anyList(), anyInt()
         )).thenReturn(records);
@@ -419,7 +419,7 @@ class MandatoryNotificationServiceImplTest {
         @DisplayName("should return INTERNAL_SERVER_ERROR when unexpected exception occurs")
         void unexpectedException_returnsInternalError() {
             mockValidUser();
-            when(cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+            when(cassandraOperation.getRecordsByProperties(
                     anyString(), anyString(), anyMap(), anyList(), anyInt()
             )).thenThrow(new RuntimeException("DB connection failed"));
             ApiResponse response = service.getMandatoryNotificationsList(
@@ -570,7 +570,7 @@ class MandatoryNotificationServiceImplTest {
         @DisplayName("should return INTERNAL_SERVER_ERROR on unexpected exception")
         void unexpectedException_returnsInternalError() {
             mockValidUser();
-            when(cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+            when(cassandraOperation.getRecordsByProperties(
                     anyString(), anyString(), anyMap(), anyList(), anyInt()
             )).thenThrow(new RuntimeException("DB error"));
             ApiResponse response = service.getCurrentMandatoryNotification(AUTH_TOKEN);
@@ -626,11 +626,11 @@ class MandatoryNotificationServiceImplTest {
         void validRequest_marksAsRead() {
             mockValidUser();
             String createdAtStr = "2026-02-28T08:00:00Z";
-            when(cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+            when(cassandraOperation.getRecordsByProperties(
                     eq(Constants.KEYSPACE_SUNBIRD), eq(Constants.TABLE_MANDATORY_NOTIFICATION),
                     anyMap(), anyList(), eq(1)
             )).thenReturn(List.of(Map.of(NOTIFICATION_ID, "n1")));
-            when(cassandraOperation.updateRecordByCompositeKey(
+            when(cassandraOperation.updateRecord(
                     eq(Constants.KEYSPACE_SUNBIRD), eq(Constants.TABLE_MANDATORY_NOTIFICATION),
                     anyMap(), anyMap()
             )).thenReturn(Map.of(Constants.RESPONSE, Constants.SUCCESS));
@@ -649,7 +649,7 @@ class MandatoryNotificationServiceImplTest {
         @DisplayName("should return NOT_FOUND when notification does not exist")
         void notificationNotFound_returnsNotFound() {
             mockValidUser();
-            when(cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+            when(cassandraOperation.getRecordsByProperties(
                     eq(Constants.KEYSPACE_SUNBIRD), eq(Constants.TABLE_MANDATORY_NOTIFICATION),
                     anyMap(), anyList(), eq(1)
             )).thenReturn(Collections.emptyList());
@@ -657,7 +657,7 @@ class MandatoryNotificationServiceImplTest {
                     AUTH_TOKEN, buildRequestBody("n1", "2026-02-28T08:00:00Z"));
             assertEquals(HttpStatus.NOT_FOUND, response.getResponseCode());
             assertEquals(ERR_NOTIFICATION_NOT_FOUND, response.getParams().getErrMsg());
-            verify(cassandraOperation, never()).updateRecordByCompositeKey(anyString(), anyString(), anyMap(), anyMap());
+            verify(cassandraOperation, never()).updateRecord(anyString(), anyString(), anyMap(), anyMap());
         }
 
         @Test
@@ -665,18 +665,18 @@ class MandatoryNotificationServiceImplTest {
         void validRequest_passesCorrectCompositeKey() {
             mockValidUser();
             String createdAtStr = "2026-02-28T08:00:00Z";
-            when(cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+            when(cassandraOperation.getRecordsByProperties(
                     eq(Constants.KEYSPACE_SUNBIRD), eq(Constants.TABLE_MANDATORY_NOTIFICATION),
                     anyMap(), anyList(), eq(1)
             )).thenReturn(List.of(Map.of(NOTIFICATION_ID, "n1")));
-            when(cassandraOperation.updateRecordByCompositeKey(
+            when(cassandraOperation.updateRecord(
                     anyString(), anyString(), anyMap(), anyMap()
             )).thenReturn(Map.of(Constants.RESPONSE, Constants.SUCCESS));
             service.markMandatoryNotificationsAsRead(
                     AUTH_TOKEN, buildRequestBody("n1", createdAtStr));
             ArgumentCaptor<Map<String, Object>> compositeKeyCaptor = ArgumentCaptor.forClass(Map.class);
             ArgumentCaptor<Map<String, Object>> updateCaptor = ArgumentCaptor.forClass(Map.class);
-            verify(cassandraOperation).updateRecordByCompositeKey(
+            verify(cassandraOperation).updateRecord(
                     eq(Constants.KEYSPACE_SUNBIRD), eq(Constants.TABLE_MANDATORY_NOTIFICATION),
                     updateCaptor.capture(), compositeKeyCaptor.capture()
             );
@@ -692,11 +692,11 @@ class MandatoryNotificationServiceImplTest {
         @DisplayName("should return INTERNAL_SERVER_ERROR when Cassandra update fails")
         void cassandraUpdateFails_returnsInternalError() {
             mockValidUser();
-            when(cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+            when(cassandraOperation.getRecordsByProperties(
                     eq(Constants.KEYSPACE_SUNBIRD), eq(Constants.TABLE_MANDATORY_NOTIFICATION),
                     anyMap(), anyList(), eq(1)
             )).thenReturn(List.of(Map.of(NOTIFICATION_ID, "n1")));
-            when(cassandraOperation.updateRecordByCompositeKey(
+            when(cassandraOperation.updateRecord(
                     anyString(), anyString(), anyMap(), anyMap()
             )).thenReturn(Map.of(Constants.RESPONSE, "failure"));
             ApiResponse response = service.markMandatoryNotificationsAsRead(
@@ -709,11 +709,11 @@ class MandatoryNotificationServiceImplTest {
         @DisplayName("should return INTERNAL_SERVER_ERROR on unexpected exception")
         void unexpectedException_returnsInternalError() {
             mockValidUser();
-            when(cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+            when(cassandraOperation.getRecordsByProperties(
                     eq(Constants.KEYSPACE_SUNBIRD), eq(Constants.TABLE_MANDATORY_NOTIFICATION),
                     anyMap(), anyList(), eq(1)
             )).thenReturn(List.of(Map.of(NOTIFICATION_ID, "n1")));
-            when(cassandraOperation.updateRecordByCompositeKey(
+            when(cassandraOperation.updateRecord(
                     anyString(), anyString(), anyMap(), anyMap()
             )).thenThrow(new RuntimeException("Connection timeout"));
             ApiResponse response = service.markMandatoryNotificationsAsRead(

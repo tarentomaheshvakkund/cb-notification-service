@@ -2,15 +2,14 @@ package com.igot.cb.notification.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.igot.cb.authentication.util.AccessTokenValidator;
 import com.igot.cb.notification.enums.NotificationReadStatus;
 import com.igot.cb.notification.enums.NotificationSubType;
 import com.igot.cb.notification.service.MandatoryNotificationService;
-import com.igot.cb.transactional.cassandrautils.CassandraOperation;
-import com.igot.cb.util.ApiResponse;
 import com.igot.cb.util.CbServerProperties;
 import com.igot.cb.util.Constants;
-import com.igot.cb.util.ProjectUtil;
+import org.igot.common.ApiResponse;
+import org.igot.common.auth.AccessTokenValidator;
+import org.igot.common.cassandra.CassandraOperation;
 import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -58,7 +57,7 @@ public class MandatoryNotificationServiceImpl implements MandatoryNotificationSe
     @Override
     public ApiResponse getMandatoryNotificationsList(String token, int days, int page, int size, NotificationReadStatus status, String subType) {
         log.info("getMandatoryNotificationsList: started");
-        ApiResponse response = ProjectUtil.createDefaultResponse(Constants.USER_MANDATORY_NOTIFICATION_LIST);
+        ApiResponse response = ApiResponse.createDefaultResponse(Constants.USER_MANDATORY_NOTIFICATION_LIST);
         try {
             String userId = accessTokenValidator.fetchUserIdFromAccessToken(token);
             if (StringUtils.isEmpty(userId)) {
@@ -91,7 +90,7 @@ public class MandatoryNotificationServiceImpl implements MandatoryNotificationSe
      */
     private List<Map<String, Object>> fetchAndMergeNotifications(String userId) {
         List<String> fields = List.of(NOTIFICATION_ID, CREATED_AT, TYPE, MESSAGE, READ, ROLE, SOURCE, CATEGORY, SUB_CATEGORY, SUB_TYPE, IS_DELETED);
-        List<Map<String, Object>> records = cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+        List<Map<String, Object>> records = cassandraOperation.getRecordsByProperties(
                 Constants.KEYSPACE_SUNBIRD, Constants.TABLE_MANDATORY_NOTIFICATION,
                 Map.of(USER_ID, userId), fields, cbServerProperties.getMandatoryNotificationMaxFetchLimit()
         );
@@ -190,7 +189,7 @@ public class MandatoryNotificationServiceImpl implements MandatoryNotificationSe
     @Override
     public ApiResponse getCurrentMandatoryNotification(String token) {
         log.info("getCurrentMandatoryNotification: started");
-        ApiResponse response = ProjectUtil.createDefaultResponse(Constants.USER_MANDATORY_NOTIFICATION_CURRENT);
+        ApiResponse response = ApiResponse.createDefaultResponse(Constants.USER_MANDATORY_NOTIFICATION_CURRENT);
         try {
             String userId = accessTokenValidator.fetchUserIdFromAccessToken(token);
             if (StringUtils.isEmpty(userId)) {
@@ -229,7 +228,7 @@ public class MandatoryNotificationServiceImpl implements MandatoryNotificationSe
     public ApiResponse markMandatoryNotificationsAsRead(String token, Map<String, Object> requestBody) {
         log.info("markMandatoryNotificationsAsRead: started");
         Map<String, Object> request = (Map<String, Object>) requestBody.get(Constants.REQUEST);
-        ApiResponse response = ProjectUtil.createDefaultResponse(Constants.USER_MANDATORY_NOTIFICATION_READ);
+        ApiResponse response = ApiResponse.createDefaultResponse(Constants.USER_MANDATORY_NOTIFICATION_READ);
         String userId = accessTokenValidator.fetchUserIdFromAccessToken(token);
         if (StringUtils.isEmpty(userId)) {
             log.warn("markMandatoryNotificationsAsRead: Invalid or missing auth token");
@@ -251,7 +250,7 @@ public class MandatoryNotificationServiceImpl implements MandatoryNotificationSe
                 return response;
             }
             Map<String, Object> compositeKey = Map.of(USER_ID, userId, CREATED_AT, createdAt);
-            List<Map<String, Object>> existing = cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+            List<Map<String, Object>> existing = cassandraOperation.getRecordsByProperties(
                     Constants.KEYSPACE_SUNBIRD, Constants.TABLE_MANDATORY_NOTIFICATION,
                     compositeKey, Collections.singletonList(NOTIFICATION_ID), 1
             );
@@ -261,7 +260,7 @@ public class MandatoryNotificationServiceImpl implements MandatoryNotificationSe
                 return response;
             }
             Instant now = Instant.now();
-            Map<String, Object> result = cassandraOperation.updateRecordByCompositeKey(
+            Map<String, Object> result = cassandraOperation.updateRecord(
                     Constants.KEYSPACE_SUNBIRD, Constants.TABLE_MANDATORY_NOTIFICATION,
                     Map.of(READ, true, READ_AT, now),
                     compositeKey
@@ -363,7 +362,7 @@ public class MandatoryNotificationServiceImpl implements MandatoryNotificationSe
         try {
             Map<String, Object> criteria = Map.of(USER_ID, userId);
             List<String> fields = Collections.singletonList(COUNT);
-            List<Map<String, Object>> records = cassandraOperation.getRecordsByPropertiesWithoutFiltering(
+            List<Map<String, Object>> records = cassandraOperation.getRecordsByProperties(
                     keyspace, table, criteria, fields, 1
             );
             if (CollectionUtils.isEmpty(records)) {
@@ -383,7 +382,7 @@ public class MandatoryNotificationServiceImpl implements MandatoryNotificationSe
             Map<String, Object> updates = new HashMap<>();
             updates.put(COUNT, currentCount - 1);
             updates.put(UPDATED_AT, Instant.now());
-            cassandraOperation.updateRecordByCompositeKey(keyspace, table, updates, criteria);
+            cassandraOperation.updateRecord(keyspace, table, updates, criteria);
         } catch (Exception e) {
             log.error("decrementUnreadCount: Failed for user={} error={}", userId, e.getMessage(), e);
         }

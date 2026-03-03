@@ -494,6 +494,10 @@ public class Constants {
     public static final String ERR_UPDATING_NOTIFICATION = "Internal server error while updating notification";
     public static final String TABLE_MANDATORY_NOTIFICATION = "mandatory_notifications";
 
+    public static final String USER_MANDATORY_NOTIFICATION_LIST = "mandatory.notification.v1.list";
+    public static final String USER_MANDATORY_NOTIFICATION_CURRENT = "mandatory.notification.v1.current";
+    public static final String USER_MANDATORY_NOTIFICATION_READ = "mandatory.notification.v1.read";
+
     private Constants() {
     }
 }
