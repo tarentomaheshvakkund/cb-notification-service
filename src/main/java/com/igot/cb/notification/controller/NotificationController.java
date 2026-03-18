@@ -1,6 +1,7 @@
 package com.igot.cb.notification.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.igot.cb.peervalidationcleanup.service.PeerValidationCleanupService;
 import com.igot.cb.notification.enums.NotificationReadStatus;
 import com.igot.cb.notification.service.NotificationService;
 import com.igot.cb.util.Constants;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +23,12 @@ import static com.igot.cb.util.Constants.*;
 public class NotificationController {
 
     private NotificationService notificationService;
+    private final PeerValidationCleanupService peerValidationCleanupService;
 
-    public NotificationController(NotificationService notificationService) {
+    public NotificationController(NotificationService notificationService,
+                                  PeerValidationCleanupService peerValidationCleanupService) {
         this.notificationService = notificationService;
+        this.peerValidationCleanupService = peerValidationCleanupService;
     }
 
     @PostMapping("/create")
@@ -140,6 +145,13 @@ public class NotificationController {
         Map<String, Object> request = (Map<String, Object>) requestBody.get(REQUEST);
         ApiResponse response = notificationService.markNotificationsAsRead(token, request, Constants.API_VERSION_V2);
         return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping(Constants.CLEANUP_PEER_VALIDATION_ENDPOINT)
+    public ResponseEntity<Void> runPeerValidationCleanup() {
+        peerValidationCleanupService.runCleanup(Instant.now());
+        return ResponseEntity.accepted().build();
     }
 
 }

@@ -534,6 +534,13 @@ public class Constants {
     public static final String CATEGORY_PEER_VALIDATION = "PEER_VALIDATION";
     public static final String STATUS_EXPIRED = "EXPIRED";
 
+    // Peer Validation Cleanup Job
+    public static final String CLEANUP_PEER_VALIDATION_API_ID = "notification.v1.cleanup.peervalidation";
+    public static final String CLEANUP_PEER_VALIDATION_ENDPOINT = "/cleanup/peer-validations";
+    public static final String TABLE_PEER_VALIDATION_CLEANUP_FAILURES = "peer_validation_cleanup_failures";
+    public static final String JOB_DATE = "job_date";
+    public static final String FAILURE_REASON = "failure_reason";
+
     private Constants() {
     }
 }
